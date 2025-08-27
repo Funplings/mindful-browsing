@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindful Browsing</title>
+    <link rel="stylesheet" href="block.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧘 Mindful Browsing</h1>
+            <p class="subtitle">Take a moment to reflect before proceeding</p>
+        </div>
+
+        <div class="target-site">
+            <p>You're trying to visit: <strong id="target-url"></strong></p>
+        </div>
+
+        <form id="access-form">
+            <div class="form-group">
+                <label for="reason">Why do you want to visit this site?</label>
+                <textarea 
+                    id="reason" 
+                    name="reason" 
+                    placeholder="Please provide a thoughtful reason (minimum 100 characters)..."
+                    required
+                    minlength="100"
+                ></textarea>
+                <div class="char-counter">
+                    <span id="char-status">Minimum not reached</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="duration">How long do you plan to spend? (minutes)</label>
+                <input 
+                    type="number" 
+                    id="duration" 
+                    name="duration" 
+                    min="1" 
+                    max="180" 
+                    value="15"
+                    required
+                >
+            </div>
+
+            <button type="submit" id="proceed-btn" disabled>Proceed to Site</button>
+        </form>
+
+        <div class="history-section">
+            <h3>Your Visit History</h3>
+            <div id="visit-history"></div>
+        </div>
+    </div>
+
+    <script src="block.js"></script>
+</body>
+</html>

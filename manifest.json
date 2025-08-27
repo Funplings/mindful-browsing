@@ -1,0 +1,31 @@
+{
+  "manifest_version": 2,
+  "name": "Intentional Browsing",
+  "version": "1.0",
+  "description": "Adds a mindful barrier before accessing distracting websites",
+  
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "storage",
+    "tabs",
+    "*://*.twitter.com/*",
+    "*://*.x.com/*"
+  ],
+  
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  
+  "web_accessible_resources": [
+    "block.html",
+    "block.css",
+    "block.js"
+  ],
+  
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  }
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Reflection</title>
+    <link rel="stylesheet" href="block.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤔 Session Reflection</h1>
+            <p class="subtitle">Your time is up. Please reflect on your experience</p>
+        </div>
+
+        <div class="target-site">
+            <p>You just spent time on: <strong id="target-url"></strong></p>
+        </div>
+
+        <form id="reflection-form">
+            <div class="form-group">
+                <label for="reflection">What did you get out of this experience?</label>
+                <textarea 
+                    id="reflection" 
+                    name="reflection" 
+                    placeholder="Please reflect thoughtfully on your time spent (minimum 100 characters)..."
+                    required
+                    minlength="100"
+                ></textarea>
+                <div class="char-counter">
+                    <span id="reflection-status">Minimum not reached</span>
+                </div>
+            </div>
+
+            <button type="submit" id="complete-btn" disabled>Complete Reflection</button>
+        </form>
+
+        <div class="warning-section">
+            <p class="warning-text">⚠️ Closing this page without completing your reflection will temporarily block access to this site.</p>
+        </div>
+    </div>
+
+    <script src="reflect.js"></script>
+</body>
+</html>
