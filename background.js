@@ -1,10 +1,23 @@
-const BLOCKED_SITES = [
-  'twitter.com',
-  'x.com'
-];
-
+let BLOCKED_SITES = []; // Default sites
 let activeSessions = {};
 let temporaryBlocks = {};
+
+// Load blocked sites from storage on startup
+browser.storage.sync.get(['blockedSites'], (result) => {
+  if (browser.runtime.lastError) {
+    console.error('Error loading blocked sites:', browser.runtime.lastError);
+    BLOCKED_SITES = [];
+    return;
+  }
+  
+  if (result && typeof result === 'object') {
+    BLOCKED_SITES = result.blockedSites || [];
+  } else {
+    BLOCKED_SITES = [];
+  }
+  
+  console.log('Loaded blocked sites:', BLOCKED_SITES);
+});
 
 function isBlockedSite(url) {
   try {
@@ -93,7 +106,7 @@ browser.webRequest.onBeforeRequest.addListener(
     }
   },
   {
-    urls: ["*://*.twitter.com/*", "*://*.x.com/*", "*://twitter.com/*", "*://x.com/*"],
+    urls: ["<all_urls>"],
     types: ["main_frame"]
   },
   ["blocking"]
@@ -149,11 +162,15 @@ browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     const { targetUrl, duration } = message;
     blockSiteTemporarily(targetUrl, duration);
     sendResponse({ success: true });
+  } else if (message.action === 'updateBlockedSites') {
+    const { sites } = message;
+    BLOCKED_SITES = sites;
+    sendResponse({ success: true });
   }
 });
 
 function storeVisitRecord(url, reason, duration, visitId) {
-  browser.storage.local.get(['visitHistory'], (result) => {
+  browser.storage.sync.get(['visitHistory'], (result) => {
     const history = result.visitHistory || [];
     history.push({
       url: url,
@@ -164,19 +181,19 @@ function storeVisitRecord(url, reason, duration, visitId) {
       visitId: visitId
     });
     
-    browser.storage.local.set({ visitHistory: history });
+    browser.storage.sync.set({ visitHistory: history });
   });
 }
 
 function storeReflectionForVisit(visitId, reflection) {
   return new Promise((resolve) => {
-    browser.storage.local.get(['visitHistory'], (result) => {
+    browser.storage.sync.get(['visitHistory'], (result) => {
       const history = result.visitHistory || [];
       const visitIndex = history.findIndex(visit => visit.visitId === visitId);
       
       if (visitIndex !== -1) {
         history[visitIndex].reflection = reflection;
-        browser.storage.local.set({ visitHistory: history }, () => {
+        browser.storage.sync.set({ visitHistory: history }, () => {
           resolve(true);
         });
       } else {
@@ -207,7 +224,7 @@ function blockSiteTemporarily(targetUrl, durationMinutes) {
 
 function getVisitHistory() {
   return new Promise((resolve) => {
-    browser.storage.local.get(['visitHistory'], (result) => {
+    browser.storage.sync.get(['visitHistory'], (result) => {
       resolve(result.visitHistory || []);
     });
   });

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindful Browsing Options</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background-color: #007cba;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background-color: #005a87;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .site-list {
+            margin-top: 15px;
+        }
+        
+        .site-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .site-domain {
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .status-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧘 Mindful Browsing Options</h1>
+        <p>Configure which sites to block and review before visiting</p>
+    </div>
+
+    <div class="section">
+        <h3>Blocked Sites</h3>
+        <p>Add websites that you want to review before accessing. Enter domain names without protocols or paths.</p>
+        
+        <div class="form-group">
+            <label for="new-site">Add New Site:</label>
+            <input type="text" id="new-site" placeholder="example.com" />
+            <div class="help-text">Examples: twitter.com, facebook.com, youtube.com</div>
+        </div>
+        
+        <button id="add-site" class="btn">Add Site</button>
+        
+        <div class="status-message" id="status-message"></div>
+        
+        <div class="site-list" id="site-list">
+            <!-- Sites will be loaded here -->
+        </div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>

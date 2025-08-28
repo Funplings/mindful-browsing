@@ -9,8 +9,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const proceedBtn = document.getElementById('proceed-btn');
     const form = document.getElementById('access-form');
     const historyContainer = document.getElementById('visit-history');
+    const prevDayBtn = document.getElementById('prev-day');
+    const nextDayBtn = document.getElementById('next-day');
+    const currentDateElement = document.getElementById('current-date');
     
     const isTemporarilyBlocked = urlParams.get('blocked') === 'true';
+    
+    let currentViewDate = new Date();
+    let allHistory = [];
     
     if (targetUrl) {
         targetUrlElement.textContent = decodeURIComponent(targetUrl);
@@ -91,95 +97,124 @@ document.addEventListener('DOMContentLoaded', function() {
         browser.runtime.sendMessage({
             action: 'getVisitHistory'
         }).then(response => {
-            displayHistory(response.history);
+            allHistory = response.history || [];
+            displayHistoryForCurrentDate();
         }).catch(error => {
             console.error('Error loading history:', error);
             historyContainer.innerHTML = '<div class="no-history">Failed to load visit history.</div>';
         });
     }
     
-    function displayHistory(history) {
-        if (!history || history.length === 0) {
-            historyContainer.innerHTML = '<div class="no-history">No previous visits recorded.</div>';
+    function displayHistoryForCurrentDate() {
+        updateDateDisplay();
+        updateNavigationButtons();
+        
+        const dayKey = currentViewDate.toDateString();
+        const dayHistory = getHistoryForDay(dayKey);
+        
+        if (dayHistory.length === 0) {
+            historyContainer.innerHTML = '<div class="no-history">No visits recorded for this day.</div>';
             return;
         }
         
-        const filteredHistory = history.filter(item => {
+        const totalMinutes = dayHistory.reduce((sum, item) => sum + item.duration, 0);
+        
+        const visitsHtml = dayHistory.map(item => {
+            const date = new Date(item.timestamp);
+            const formattedTime = date.toLocaleTimeString();
+            
+            let visitContent = `
+                <div class="history-item">
+                    <div class="history-time">${formattedTime}</div>
+                    <div class="history-reason"><strong>Initial reason:</strong> "${item.reason}"</div>
+                    <div class="history-duration">Duration: ${item.duration} minutes</div>
+            `;
+            
+            if (item.reflection) {
+                visitContent += `<div class="history-reflection"><strong>Post-visit reflection:</strong> "${item.reflection}"</div>`;
+            }
+            
+            visitContent += `</div>`;
+            return visitContent;
+        }).join('');
+        
+        historyContainer.innerHTML = `
+            <div class="day-total">Total screentime: ${totalMinutes} minutes</div>
+            ${visitsHtml}
+        `;
+    }
+    
+    function getHistoryForDay(dayKey) {
+        return allHistory.filter(item => {
             try {
                 const itemHostname = new URL(item.url).hostname.toLowerCase();
                 const targetHostname = new URL(targetUrl).hostname.toLowerCase();
-                return itemHostname === targetHostname;
+                const itemDayKey = new Date(item.timestamp).toDateString();
+                return itemHostname === targetHostname && itemDayKey === dayKey;
+            } catch (e) {
+                return false;
+            }
+        }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    }
+    
+    function updateDateDisplay() {
+        const today = new Date();
+        const isToday = currentViewDate.toDateString() === today.toDateString();
+        
+        let dateText;
+        if (isToday) {
+            dateText = 'Today';
+        } else {
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+            if (currentViewDate.toDateString() === yesterday.toDateString()) {
+                dateText = 'Yesterday';
+            } else {
+                dateText = currentViewDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+        }
+        
+        currentDateElement.textContent = dateText;
+    }
+    
+    function updateNavigationButtons() {
+        const today = new Date();
+        const isToday = currentViewDate.toDateString() === today.toDateString();
+        
+        nextDayBtn.disabled = isToday;
+        
+        const hasHistoryForPrevDays = allHistory.some(item => {
+            try {
+                const itemHostname = new URL(item.url).hostname.toLowerCase();
+                const targetHostname = new URL(targetUrl).hostname.toLowerCase();
+                const itemDate = new Date(item.timestamp);
+                return itemHostname === targetHostname && itemDate < currentViewDate;
             } catch (e) {
                 return false;
             }
         });
         
-        if (filteredHistory.length === 0) {
-            historyContainer.innerHTML = '<div class="no-history">No previous visits to this site.</div>';
-            return;
-        }
-        
-        const sortedHistory = filteredHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        // Group visits by day and calculate total screentime
-        const dayGroups = {};
-        sortedHistory.forEach(item => {
-            const date = new Date(item.timestamp);
-            const dayKey = date.toDateString();
-            
-            if (!dayGroups[dayKey]) {
-                dayGroups[dayKey] = {
-                    visits: [],
-                    totalMinutes: 0
-                };
-            }
-            
-            dayGroups[dayKey].visits.push(item);
-            dayGroups[dayKey].totalMinutes += item.duration;
-        });
-        
-        // Sort days by date (most recent first)
-        const sortedDays = Object.keys(dayGroups).sort((a, b) => new Date(b) - new Date(a));
-        
-        historyContainer.innerHTML = sortedDays.map(dayKey => {
-            const dayData = dayGroups[dayKey];
-            const dayDisplay = new Date(dayKey).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric', 
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            const visitsHtml = dayData.visits.map(item => {
-                const date = new Date(item.timestamp);
-                const formattedTime = date.toLocaleTimeString();
-                
-                let visitContent = `
-                    <div class="history-item">
-                        <div class="history-time">${formattedTime}</div>
-                        <div class="history-reason"><strong>Initial reason:</strong> "${item.reason}"</div>
-                        <div class="history-duration">Duration: ${item.duration} minutes</div>
-                `;
-                
-                if (item.reflection) {
-                    visitContent += `<div class="history-reflection"><strong>Post-visit reflection:</strong> "${item.reflection}"</div>`;
-                }
-                
-                visitContent += `</div>`;
-                return visitContent;
-            }).join('');
-            
-            return `
-                <div class="day-group">
-                    <div class="day-header">
-                        <h4>${dayDisplay}</h4>
-                        <div class="day-total">Total screentime: ${dayData.totalMinutes} minutes</div>
-                    </div>
-                    ${visitsHtml}
-                </div>
-            `;
-        }).join('');
+        prevDayBtn.disabled = !hasHistoryForPrevDays;
     }
+    
+    
+    // Navigation event listeners
+    prevDayBtn.addEventListener('click', function() {
+        currentViewDate.setDate(currentViewDate.getDate() - 1);
+        displayHistoryForCurrentDate();
+    });
+    
+    nextDayBtn.addEventListener('click', function() {
+        if (currentViewDate.toDateString() !== new Date().toDateString()) {
+            currentViewDate.setDate(currentViewDate.getDate() + 1);
+            displayHistoryForCurrentDate();
+        }
+    });
     
     loadVisitHistory();
     updateCharStatus();

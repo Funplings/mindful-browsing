@@ -4,13 +4,18 @@
   "version": "1.0",
   "description": "Adds a mindful barrier before accessing distracting websites",
   
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "mindful-browsing"
+    }
+  },
+  
   "permissions": [
     "webRequest",
     "webRequestBlocking",
     "storage",
     "tabs",
-    "*://*.twitter.com/*",
-    "*://*.x.com/*"
+    "<all_urls>"
   ],
   
   "background": {
